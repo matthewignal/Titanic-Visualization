@@ -1,0 +1,135 @@
+<html>
+    <head>
+		<title>Who Survived the Titanic Disaster?</title>
+        <script src ="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dimple/2.2.0/dimple.latest.js"></script>
+        <style>
+            #chartcontainer {
+                width: 80%;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+			#myButtons { position: fixed;
+      		 top: 18%;
+      		 left: 64%;}
+			 
+			 #btn, #btn1, #btn2 {  padding: 0px;
+      		 margin: 0px;
+		 	 background:#599bb3;
+	         color:#ffffff;
+	         height: 22px; 
+	         width: 40px;
+			 border-radius: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="myButtons" style="text-align:center;">
+            <button id='btn'>
+                Sex
+            </button>
+            <button id='btn1'>
+                Class
+            </button>
+			<button id='btn2'>
+				Age
+			</button>
+        </div>
+        <div id="chartcontainer" style="text-align:center;"></div>
+		
+
+        <script type="text/javascript">
+		
+	
+		var title = d3.select("#chartcontainer").append("h1").text("Sinking of the Titanic:");
+        var subtitle = d3.select("#chartcontainer").append("h2").text("Women, children, and first class passengers were far more likely to survive");
+		// transition is in milliseconds
+        var transition = 750;
+		
+		d3.csv("new_titanic.csv", function(data) {
+
+		// If 1, the passenger survived. If 0, the passenger died.
+		for ( i = 0; i < data.length; i++) {
+                    data[i]['Passengers'] = 1;
+                    if (data[i]['Survived'] == 1) {
+                        data[i]['Status'] = "Survived";
+                    } else {
+                        data[i]['Status'] = "Died";
+                    }
+                }
+
+                // Opening chart is Survival by Sex
+				var svg1 = dimple.newSvg("#chartcontainer", "75%", "75%");
+                var chart1 = new dimple.chart(svg1, data);
+                chart1.addCategoryAxis("x", "Sex");
+                var y = chart1.addMeasureAxis("y", "Passengers");
+				// Stacked bar plot	
+                chart1.addSeries("Status", dimple.plot.bar);
+                chart1.assignColor("Survived", "#8BCFF6");
+                chart1.assignColor("Died", "#F23A3A");
+				// Legend in upper-right
+                chart1.addLegend("90%", "20%", "10%", "30%", "right");
+                chart1.draw(transition);
+                svg1.append("text").attr("x", chart1._xPixels() + chart1._widthPixels() / 2).attr("y", chart1._yPixels() - 20).style("text-anchor", "middle").style("font-family", "sans-serif").style("font-weight", "bold").text("Survival by Sex")
+
+				// If Sex is clicked
+                d3.select("#btn").on("click", function() {
+                    d3.select("svg").remove()
+					
+                var svg1 = dimple.newSvg("#chartcontainer", "75%", "75%");
+                var chart1 = new dimple.chart(svg1, data);
+                chart1.addCategoryAxis("x", "Sex");
+                chart1.addMeasureAxis("y", "Passengers");
+                chart1.addSeries("Status", dimple.plot.bar);
+                chart1.assignColor("Survived", "#8BCFF6"); // moderate blue
+                chart1.assignColor("Died", "#F23A3A"); // moderate red
+                chart1.addLegend("90%", "20%", "10%", "30%", "right");
+                chart1.draw(transition);
+                svg1.append("text").attr("x", chart1._xPixels() + chart1._widthPixels() / 2).attr("y", chart1._yPixels() - 20).style("text-anchor", "middle").style("font-family", "sans-serif").style("font-weight", "bold").text("Survival by Sex")
+                });
+
+                // If Class is clicked
+				d3.select("#btn1").on("click", function() {
+                    d3.select("svg").remove();
+					
+                var svg1 = dimple.newSvg("#chartcontainer", "75%", "75%");
+                var chart2 = new dimple.chart(svg1, data);
+                var x = chart2.addCategoryAxis("x", "Pclass");
+                x.title = "Cabin Class";
+		        x.addOrderRule(["First", "Second", "Third"])
+                chart2.addMeasureAxis("y", "Passengers");
+                chart2.addSeries("Status", dimple.plot.bar);
+                chart2.assignColor("Survived", "#8BCFF6");
+                chart2.assignColor("Died", "#F23A3A");
+                chart2.addLegend("90%", "20%", "10%", "30%", "right");
+                chart2.draw(transition);
+                svg1.append("text").attr("x", chart2._xPixels() + chart2._widthPixels() / 2).attr("y", chart2._yPixels() - 20).style("text-anchor", "middle").style("font-family", "sans-serif").style("font-weight", "bold").text("Survival by Cabin Class")
+                });
+				
+				 // If Age is clicked
+				 d3.select("#btn2").on("click", function() {
+                    d3.select("svg").remove();
+					
+		         // Filter out NaN's
+			     var filtered = dimple.filterData(data, "Age Group", ["Child", "Teenager", "Young Adult", "Adult", "Senior"]);
+				 var svg1 = dimple.newSvg("#chartcontainer", "75%", "75%");
+                 var chart3 = new dimple.chart(svg1, filtered);
+                 var x = chart3.addCategoryAxis("x", "Age Group");
+				 // Children are between 0-12, Teenagers are 13-19, Young Adults are 20-34, Adults are 35-54, and Seniors are 55+
+				 // Attempted to make the age group labels as intuitive as possible 
+			     x.addOrderRule(["Child", "Teenager", "Young Adult", "Adult", "Senior"])
+                 chart3.addMeasureAxis("y", "Passengers");
+                 chart3.addSeries("Status", dimple.plot.bar);
+                 chart3.assignColor("Survived", "#8BCFF6");
+                 chart3.assignColor("Died", "#F23A3A");
+                 chart3.addLegend("90%", "20%", "10%", "30%", "right");
+                 chart3.draw(transition);
+                 svg1.append("text").attr("x", chart3._xPixels() + chart3._widthPixels() / 2).attr("y", chart3._yPixels() - 20).style("text-anchor", "middle").style("font-family", "sans-serif").style("font-weight", "bold").text("Survival by Age")
+                });
+				
+            });
+        </script>
+    </body>
+</html>
